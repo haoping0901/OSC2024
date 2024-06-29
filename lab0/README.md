@@ -4,7 +4,7 @@
 
 ### Cross Compiler
 
-To compile executable or binary files for the 64-bit ARM architecture, we need to install the relevant packages and tools.
+To compile executable files for the 64-bit ARM architecture, we need to install the relevant packages and tools.
 
 ```bash
 # for 64-bit ARM architecture
@@ -27,7 +27,7 @@ Here is an incomplete linker script.
 ```bash
 SECTIONS
 {
-  . = 0x80000; // . 稱作
+  . = 0x80000;
   .text : { *(.text) }
 }
 ```
@@ -48,6 +48,11 @@ sudo apt install qemu-system-arm
 ### From Source Code to Object Files
 
 Assuming there is a program named `a.S` with the following content:
+
+* `.section ".text"`: According to the [GNU official manual](https://ftp.gnu.org/old-gnu/Manuals/gas-2.9.1/html_chapter/as_7.html#SEC119), this line of code in the GNU Assembler (GAS) is a directive used to assemble the following code into the `.text` section.
+* `wfe`: According to [this document](https://developer.arm.com/documentation/den0024/a/The-A64-instruction-set/System-control-and-other-instructions/Hint-instructions), this code is intended to wait for an event.
+
+
 
 ```nasm
 .section ".text"
