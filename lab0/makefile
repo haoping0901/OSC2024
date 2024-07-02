@@ -36,4 +36,4 @@ debug:
 	qemu-system-aarch64 -machine raspi3b -kernel nycuos.img -display none -S -s
 
 clean:
-	$(RM) $(TARGET) $(TARGET_ELF) *.o
+	$(RM) $(TARGET_ELF) *.o
