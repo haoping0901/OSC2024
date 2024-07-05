@@ -69,26 +69,26 @@ aarch64-linux-gnu-gcc -c a.S
 
 ### From Object Files to ELF
 
-Next, the linker will link the previously compiled object file (i.e., `a.o`) with a linker script `linker.ld` and generate an ELF (Executable and Linkable Format) file (i.e., `kernel8.elf`) in the AArch64 architecture.
+Next, the linker will link the previously compiled object file (i.e., `a.o`) with a linker script `linker.ld` and generate an ELF (Executable and Linkable Format) file (i.e., `nycuos.elf`) in the AArch64 architecture.
 
 ```bash
 # Using GNU LD
-aarch64-linux-gnu-ld -T linker.ld -o kernel8.elf a.o
+aarch64-linux-gnu-ld -T linker.ld -o nycuos.elf a.o
 
 # Using LLVM
-ld.lld -m aarch64elf -T linker.ld -o kernel8.elf a.o
+ld.lld -m aarch64elf -T linker.ld -o nycuos.elf a.o
 ```
 
 ### From ELF to Kernel Image
 
-The rpi3 bootloader cannot load ELF files directly, so the following commands are used to convert the ELF file (i.e., `kernel8.elf`) into a raw binary image (i.e., `kernel8.img`) suitable for loading by the rpi3 bootloader.:
+The rpi3 bootloader cannot load ELF files directly, so the following commands are used to convert the ELF file (i.e., `nycuos.elf`) into a raw binary image (i.e., `nycuos.img`) suitable for loading by the rpi3 bootloader.:
 
 ```bash
 # Using GNU objcopy
-aarch64-linux-gnu-objcopy -O binary kernel8.elf kernel8.img
+aarch64-linux-gnu-objcopy -O binary nycuos.elf nycuos.img
 
 # Or using LLVM objcopy
-llvm-objcopy --output-target=aarch64-rpi3-elf -O binary kernel8.elf kernel8.img
+llvm-objcopy --output-target=aarch64-rpi3-elf -O binary nycuos.elf nycuos.img
 ```
 
 ### Check on QEMU
@@ -96,7 +96,7 @@ llvm-objcopy --output-target=aarch64-rpi3-elf -O binary kernel8.elf kernel8.img
 After building, you can use QEMU to see the dumped assembly.
 
 ```bash
-qemu-system-aarch64 -machine raspi3b -kernel kernel8.img -display none -d in_asm
+qemu-system-aarch64 -machine raspi3b -kernel nycuos.img -display none -d in_asm
 ```
 
 ## Deploy to REAL Rpi3
@@ -107,7 +107,7 @@ To prepare a bootable image for the rpi3, we'll need the following components:
 
 * An FAT16/32 partition containing:
   * Firmware for the GPU.
-  * Kernel image (`kernel8.img`).
+  * Kernel image (`nycuos.img`).
 
 Here is a method to prepare the bootable image using the bootable image provided by the course website:
 
@@ -135,7 +135,7 @@ Next, use the following command to emulate the rpi3b with QEMU:
 * The `-s` option enables the GDB server, which waits for connections from GDB on TCP port 1234. This allows us to perform remote debugging with GDB.
 
 ```bash
-qemu-system-aarch64 -machine raspi3b -kernel kernel8.img -display none -S -s
+qemu-system-aarch64 -machine raspi3b -kernel nycuos.img -display none -S -s
 ```
 
-In GDB, load the `kernel8.elf` file and connect to QEMU's GDB server for debugging.
+In GDB, load the `nycuos.elf` file and connect to QEMU's GDB server for debugging.
