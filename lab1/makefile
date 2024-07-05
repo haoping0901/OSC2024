@@ -24,7 +24,7 @@ nycuos.img: start.o $(OBJS)
 	$(OBJCPY) -O binary nycuos.elf nycuos.img
 
 clean:
-	rm nycuos.elf start.o $(SRC_DIR)/*.o >/dev/null 2>/dev/null || true
+	rm nycuos.elf rm nycuos.img start.o $(SRC_DIR)/*.o >/dev/null 2>/dev/null || true
 
-debug:
+test:
 	qemu-system-aarch64 -machine raspi3b -kernel nycuos.img -display none -serial null -serial stdio

@@ -1,7 +1,7 @@
 #include "../include/uart.h"
 
  /* Set baud rate and characteristics (115200 8N1) and map to GPIO */
-void uart_init() {
+void uart_init(void) {
     register unsigned int reg;
 
     /* initialize UART */
@@ -16,7 +16,6 @@ void uart_init() {
     // set the interrupt status to impossible status 
     // and the writing status clear the FIFO
     *AUX_MU_IIR_REG     =   0x6;
-    *AUX_MU_CNTL_REG    =   3;      // Enable the transmitter and receiver.
 
     /* map UART1 to GPIO pins */
     // Check table 6-3 in p. 92
@@ -50,15 +49,18 @@ void uart_init() {
 
     // flush GPIO setup
     *GPPUDCLK0 = 0;
+
+    // Enable the transmitter and receiver.
+    *AUX_MU_CNTL_REG = 3;
 }
 
 /**
  * Receive a character
  */
 char uart_getc() {
-    char r;
+    char reg;
     // wait until something is in the buffer
-    // p.19: [0] is the field "symbol available"
+    // p.15: [0] is the field "symbol available"
     // if this field is set then mini UART receive FIFO 
     // contains at least 1 symbol
     do asm volatile("nop");
@@ -66,10 +68,10 @@ char uart_getc() {
 
     /* read it and return */
     // [7:0]: receive data
-    r = (char) (*AUX_MU_IO_REG);
+    reg = (char) (*AUX_MU_IO_REG);
 
     /* convert carriage return to newline */
-    return r == '\r' ? '\n' : r;
+    return reg == '\r' ? '\n' : reg;
 }
 
 /**
