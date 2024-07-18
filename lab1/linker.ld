@@ -34,5 +34,4 @@ SECTIONS
   Calculate the size of the .bss section in the size of 
   xzr register (64-bit zero register).
 */
-/* _bss_size = (_bss_end - _bss_start) >> 3; */
 _bss_size = (SIZEOF(.bss)) >> 3;

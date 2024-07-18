@@ -1,6 +1,8 @@
 #include "../include/shell.h"
 #include "../include/uart.h"
 #include "../include/utils.h"
+#include "../include/mailbox.h"
+#include "../include/reboot.h"
 
 #define BUFFER_SIZE 128
 
@@ -25,14 +27,16 @@ SPECIAL_CHAR parse_char(const char recv_char) {
 }
 
 void input_buffer_overflow_protection(const char *buf) {
-    uart_puts("\nThe command being entered is too long to process.\n");
+    uart_puts("The command being entered is too long to process.\n");
     return;
 }
 
 void help_command(void) {
     uart_puts("help     : print this help menu\n");
-    uart_puts("hello    : print Hellow World!\n");
+    uart_puts("hello    : print Hello World!\n");
+    uart_puts("sysinfo  : print the system informations\n");
     uart_puts("reboot   : reboot the device\n");
+    // uart_puts("h        : halt rebooting\n");
 
     return;
 }
@@ -42,7 +46,22 @@ void hello_command(void) {
     return;
 }
 
+void sysinfo_command(void) {
+    get_sys_info();
+
+    return;
+}
+
 void reboot_command(void) {
+    uart_puts("\nRebooting...\n\n");
+    reset(100000);
+    return;
+}
+
+void halt_command(void) {
+    uart_puts("Halt the reboot... ");
+    cancel_reset();
+    uart_puts("Finished!\n");
     return;
 }
 
@@ -54,7 +73,9 @@ void print_unknown(void) {
 void commands_cmp(const char *buf) {
     if (!strcmp(buf, "help")) help_command();
     else if (!strcmp(buf, "hello")) hello_command();
-    else if (!strcmp(buf, "reboot\n")) reboot_command();
+    else if (!strcmp(buf, "reboot")) reboot_command();
+    else if (!strcmp(buf, "sysinfo")) sysinfo_command();
+    // else if (!strcmp(buf, "h")) halt_command();
     else print_unknown();
 
     return;
@@ -66,10 +87,9 @@ void put_char(const SPECIAL_CHAR schar, const char recv_char,
         case BACK_SPACE: 
             if (*buf_idx > 0) --*buf_idx;
             uart_puts("\b \b");
-            // uart_putc(recv_char);
             break;
         case LINE_FEED:
-            uart_putc(recv_char);
+            uart_puts("\n");
             
             if (*buf_idx == BUFFER_SIZE)
                 input_buffer_overflow_protection(buf);
@@ -80,12 +100,12 @@ void put_char(const SPECIAL_CHAR schar, const char recv_char,
                 commands_cmp(buf);
             }
 
-            memset(buf, 0, BUFFER_SIZE);
             *buf_idx = 0;
+            memset(buf, 0, BUFFER_SIZE);
+            uart_puts("# ");
             break;
         case UNKNOWN:
             return;
-            break;
         case REGULAR_INPUT:
             uart_putc(recv_char);
 
@@ -108,15 +128,12 @@ void shell() {
     
     buf_idx = 0;
     memset(buf, '\0', BUFFER_SIZE);
+    uart_puts("# ");
 
     // keep reading the input character 
     while (1) {
         recv_char = uart_getc();
-
-        // parse
         schar = parse_char(recv_char);
-
-        // deal with parsed character
         put_char(schar, recv_char, buf, &buf_idx);
     }
 

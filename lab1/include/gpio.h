@@ -1,8 +1,6 @@
 #ifndef GPIO_H
 #define GPIO_H
 
-// peripheral offset of the GPIO and the UART hardware systems, as well as some of their registers.
-
 // The GPIO registers base address.
 // Check BCM2835 section 1.2.3.
 #define MMIO_BASE   0x3F000000
@@ -50,8 +48,5 @@
 // GPIO Pin Pull-up/down Enable Clock n
 #define GPPUDCLK0   ((volatile unsigned int*)(MMIO_BASE + 0x00200098))
 #define GPPUDCLK1   ((volatile unsigned int*)(MMIO_BASE + 0x0020009C))
-
-// void mmio_write(long reg, unsigned int data);
-// unsigned int mmio_read(long reg);
 
 #endif

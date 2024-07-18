@@ -1,10 +1,17 @@
 # Lab 1: Hello World
 
-## Basic Exersices
+這個 lab 會練習再沒有作業系統的環境下 (bare metal) 開發程式，藉此讓我們了解以下知識:
 
-### Basic Exercise 1 - Basic Initialization - 20%
+1. Linker script: 決定程式該如何擺放到記憶體上。
+2. Assembly: 在開始執行程式前先初始化特定資料 (e.g., 全域變數和靜態變數)。
+3. mini UART (UART1): 讓主機 (e.g., 我們開發程式的電腦) 跟 rpi3 互相溝通的管道。
+4. Mailbox: SoC 的各個核心 (e.g., CPU 跟 GPU) 之間通訊的方法
 
-#### Linker Scripts
+## Basic Exercise 1 - Basic Initialization - 20%
+
+### Linker Scripts
+
+在 bare metal programming 中由於沒有 OS 的幫忙，因此需要自己撰寫 linker script 決定資料擺放在記憶體上的位置。以下為 `start.S` 中一些指令的解釋。
 
 `ENTRY(_start)`: 根據[官方文件](https://sourceware.org/binutils/docs/ld/Entry-Point.html)可知，這個命令設置程式第一個執行的指令。
 
@@ -26,26 +33,29 @@
 
 * 計算大小所使用的函式可以參考[官方手冊](https://ftp.gnu.org/old-gnu/Manuals/ld-2.9.1/html_node/ld_14.html)。
 
-#### Boot Code
+### Boot Code
 
-在開始以組語撰寫開機程式前，可以先參考[此文章](https://winddoing.github.io/post/7190.html)去初步了解 ARMv8 架構下的 AArch64 execution state 的 64-bit A64 指令集。
+決定好記憶體怖局後，接下來要在程式開始執行前先初始化像是全域變數跟靜態變數等變數。
 
-對指令集有初步認知後，接下來參考課程提供的[外部資源](https://github.com/bztsrc/raspi3-tutorial/tree/master/01_bareminimum)可以知道須要考慮到 Raspberry Pi Model 3 B+ 中的 CPU 為四核心，因此要決定程式要在哪顆核心上執行。
+首先參考課程提供的[外部資源](https://github.com/bztsrc/raspi3-tutorial/tree/master/02_multicorec)可以知道須要考慮到 Raspberry Pi Model 3 B+ 中的 CPU 為四核心，因此要決定程式要在哪顆核心上執行。
+
+* 在開始撰寫組語前，可以先參考[這篇文章](https://winddoing.github.io/post/7190.html)初步了解 ARMv8-A 架構中的 64-bit 指令集。
 
 `.section ".text.boot"`: 根據[官方文件](https://sourceware.org/binutils/docs/as/Section.html)可以知道這個指示詞會把接下來的程式碼聚集到 `.text.boot` section 中。
 
 * 根據[官方文件](https://sourceware.org/binutils/docs/as/Section.html)可以知道把 section name 引用是為了增加相容性。
 
-`mrs x0, mpidr_el1`: 讀取 CPU ID，讀取方式可參考[官方文檔](https://developer.arm.com/documentation/ddi0500/j/System-Control/AArch64-register-descriptions/Multiprocessor-Affinity-Register?lang=en)。
+`_start` label:
 
-* 官方文檔對 `mpidr_el1` 暫存器的解釋為:
-  * Provides an additional core identification mechanism for scheduling purposes in a cluster system.
+* `mrs x0, mpidr_el1`: 讀取 CPU ID，讀取方式可參考[官方文檔](https://developer.arm.com/documentation/ddi0500/j/System-Control/AArch64-register-descriptions/Multiprocessor-Affinity-Register?lang=en)。
+  * 官方文檔對 `mpidr_el1` 暫存器的解釋為
   
-  其中關於 cluster system 的定義根據[這篇文章](https://blog.csdn.net/djkeyzx/article/details/132270341)可得知[官方文檔](https://developer.arm.com/documentation/den0024/a/Multi-core-processors/Multi-processing-systems?lang=en)提到說一個各個核心可以獨立執行指令的多核處理器，像是 Cortex-A53，可以被視為一個 cluster。
+    > Provides an additional core identification mechanism for scheduling purposes in a cluster system.
 
-`and x0, x0, #0xff`: 用來找出執行中的核心是哪顆 (暫存器 [7:0] 用來表示 Cortex-A53 處理器的核心數)。
+    其中關於 cluster system 的定義根據[這篇文章](https://blog.csdn.net/djkeyzx/article/details/132270341)可得知[官方文檔](https://developer.arm.com/documentation/den0024/a/Multi-core-processors/Multi-processing-systems?lang=en)提到說一個各個核心可以獨立執行指令的多核處理器，像是 Cortex-A53，可以被視為一個 cluster。
 
-`cbz x0, master`: 讓第 0 顆核心執行程式時跳去初始化 bss section 的 master label (指令使用方式可參考[官方文件](https://developer.arm.com/documentation/den0024/a/The-A64-instruction-set/Flow-control))。
+* `and x0, x0, #0xff`: 用來找出執行中的核心是哪顆 (暫存器 [7:0] 用來表示 Cortex-A53 處理器的核心數)。
+* `cbz x0, master`: 讓第 0 顆核心執行程式時跳去初始化 bss section 的 master label (指令使用方式可參考[官方文件](https://developer.arm.com/documentation/den0024/a/The-A64-instruction-set/Flow-control))。
 
 `hang` label: 如果不是第 0 顆核心的話就讓核心進入低功耗狀態，並且確保就算意外接收到其他核心發起的 event 也會變回低功耗狀態。
 
@@ -53,7 +63,7 @@
 
 `core0` label:
 
-* `ldr x1, =_start`: 根據[官方文件](https://developer.arm.com/documentation/dui0379/e/writing-arm-assembly-language/load-addresses-into-registers)會把 `_start` label 的位址載入到 x1 暫存器中。
+* `ldr x0, =_start`: 根據[官方文件](https://developer.arm.com/documentation/dui0379/e/writing-arm-assembly-language/load-addresses-into-registers)會把 `_start` label 的位址載入到 x1 暫存器中。
   * 於 `_start` label 是否有加等號的差異在於有加等號的程式會載入 label 的位址，沒有加等號的程式會把 label 指向的位址中存放的值載入。([參考網址](https://www.cnblogs.com/blogernice/articles/13840178.html))
 * `mov sp, x0`: 設定 stack 的位址
 * 把 linker script 中的 `.bss` section 起始位址資訊載入到 `x0` 暫存器，`.bss` section 大小資訊載入到 `w1` 暫存器中，以便接下來初始化 `.bss` section。
@@ -67,23 +77,54 @@
 
 * `bl main`: 跳到 C 程式的 main 函式
   * `bl` 指令: 除了跳到其他指令的位址去執行還會把 `bl` 的下一道指令的位址紀錄到 Link Register (LR) 中，以便之後可能可以透過 LR 暫存器跳回來繼續執行。([參考網站](https://stackoverflow.com/questions/34091898/bl-instruction-arm-how-does-it-work))
-* 跳到 `core0` label 後，首先
 
 `.end`: [Arm 官方文件](https://developer.arm.com/documentation/100068/0622/Migrating-from-armasm-to-the-armclang-Integrated-Assembler/Miscellaneous-directives?lang=en)，[台大課程投影片](https://www.csie.ntu.edu.tw/~cyy/courses/assembly/12fall/lectures/handouts/lec10_ARMasm.pdf)與[這篇文章](https://stackoverflow.com/questions/22486532/the-end-directive-in-assembly-language)都提到這個指令是被用來標記組語檔案的結尾。
 
-### Basic Exercise 2 - Mini UART - 20%
+## Basic Exercise 2 - Mini UART - 20%
 
-### Basic Exercise 3 - Simple Shell - 20%
+接下來，為了讓主機 (e.g., 我們開發程式的電腦) 能跟 rpi3 互相通訊，因此我們使用 mini UART (UART1) 把傳輸資料。
 
-### Basic Exercise 4 - Mailbox - 20%
+使用 UART1 前，因為 rpi3 會透過 MMIO (memory mapped input output) 的方式存取週邊裝置，因此要先把各個記憶體位址設定成對應的週邊裝置 (`gpio.h`)。
 
-#### 33
+* 設定方式可以參考[外部資源](https://github.com/bztsrc/raspi3-tutorial/blob/master/03_uart1/gpio.h)與課程提供的[官方文檔](https://cs140e.sergio.bz/docs/BCM2837-ARM-Peripherals.pdf)。
 
-##### 234
+接下來，參考[外部資源](https://github.com/bztsrc/raspi3-tutorial/blob/master/03_uart1/uart.c)設計傳輸資料的程式。
 
-## Advanced Exercises
+## Basic Exercise 3 - Simple Shell - 20%
 
-### Advanced Exercise 1 - Reboot - 30%
+不斷接收輸入字元，並在接收到換行的時候進行字元判斷。
+
+* 在處理換行時要加上回車 (carriage return) 字元，如果沒加上的話會只往下一行而已，不會回到開頭。
+
+## Basic Exercise 4 - Mailbox - 20%
+
+### Background
+
+在 rpi3 中，mailboxes 的主要功能是促進 ARM 處理器和 VideoCore (GPU) 之間的通訊。這個機制包含了以下三個部份:
+
+1. Mailbox registers: Mailbox 暫存器是透過 MMIO 去存取的，在這個實驗我們僅需要讀取 Mailbox 0 Read/Write (CPU 讀取 GPU)，Mailbox 0 status (檢查 GPU 的狀態) 跟 Mailbox 1 Read/Write (CPU 寫到 GPU)。
+    * 在樹莓派的官方 [github](https://github.com/raspberrypi/firmware/wiki/Mailboxes) 上提供了不同 mailboxes 的 registers offsets。
+2. Channels: 根據 [rpi3 官方 github](https://github.com/raspberrypi/firmware/wiki/Mailboxes) 可以知道 Mailbox 0 定義了許多通道，在這個 lab 我們只使用通道 8 (CPU/ARM -> GPU/VideoCore)。
+    * 由於只有 mailbox 0 可以產生中斷給 ARM，因此 mailbox 0 會用來讓 videocore 傳遞訊息給 ARM。
+3. Message: 為了用 mailbox 傳遞與接收訊息，我們需要遵照以下步驟準備一個陣列存放要傳遞的訊息 (參考[外部資源](https://github.com/bztsrc/raspi3-tutorial/blob/master/04_mailboxes/mbox.c))。
+    1. Combine the message address (upper 28 bits) with channel number (lower 4 bits)
+    2. Check if Mailbox 0 status register’s full flag is set.
+    3. If not, then you can write to Mailbox 1 Read/Write register.
+    4. Check if Mailbox 0 status register’s empty flag is set.
+    5. If not, then you can read from Mailbox 0 Read/Write register.
+    6. Check if the value is the same as you wrote in step 1.
+
+### Board Revision
+
+在[此網站](https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface)中可以知道 ARM memory 相關資訊的 tag 為 `0x00010005`，並且回覆長度為 4 個 bytes。
+
+### ARM memory base address
+
+在[此網站](https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface)中可以知道 ARM memory 相關資訊的 tag 為 `0x00010005`，並且回覆長度為 8 個 bytes。
+
+## Advanced Exercise 1 - Reboot - 30%
+
+直接使用課程提供的程式碼即可。
 
 ## Makefile
 
@@ -91,7 +132,7 @@
 
 `OBJS = $(SRCS:.c=.o)`: 據[官方手冊](https://www.gnu.org/software/make/manual/make.html#Substitution-Refs)可知這段指令會把變數 `SRCS` 尾端的每個 `.c` 替換成 `.o`。
 
-以下為[GNU 官方手冊](https://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html)中關於 automatic variables 的介紹:
+以下為 [GNU 官方手冊](https://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html)中關於 automatic variables 的介紹:
 
 * `$@`: 目的檔檔名。
 * `$<`: 第一個依賴檔檔名。

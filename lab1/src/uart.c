@@ -1,5 +1,19 @@
 #include "../include/uart.h"
 
+// Check BCM2835 p. 8 for detail
+#define AUX_ENABLES     ((volatile unsigned int*)(MMIO_BASE+0x00215004))
+#define AUX_MU_IO_REG   ((volatile unsigned int*)(MMIO_BASE+0x00215040))
+#define AUX_MU_IER_REG  ((volatile unsigned int*)(MMIO_BASE+0x00215044))
+#define AUX_MU_IIR_REG  ((volatile unsigned int*)(MMIO_BASE+0x00215048))
+#define AUX_MU_LCR_REG  ((volatile unsigned int*)(MMIO_BASE+0x0021504C))
+#define AUX_MU_MCR_REG  ((volatile unsigned int*)(MMIO_BASE+0x00215050))
+#define AUX_MU_LSR_REG  ((volatile unsigned int*)(MMIO_BASE+0x00215054))
+#define AUX_MU_MSR_REG  ((volatile unsigned int*)(MMIO_BASE+0x00215058))
+#define AUX_MU_SCRATCH  ((volatile unsigned int*)(MMIO_BASE+0x0021505C))
+#define AUX_MU_CNTL_REG ((volatile unsigned int*)(MMIO_BASE+0x00215060))
+#define AUX_MU_STAT_REG ((volatile unsigned int*)(MMIO_BASE+0x00215064))
+#define AUX_MU_BAUD_REG ((volatile unsigned int*)(MMIO_BASE+0x00215068))
+
  /* Set baud rate and characteristics (115200 8N1) and map to GPIO */
 void uart_init(void) {
     register unsigned int reg;
@@ -81,7 +95,7 @@ void uart_putc(unsigned int c) {
     /* wait until we can send */
     do asm volatile("nop");
     while (!(*AUX_MU_LSR_REG & 0x20));
-
+    
     /* write the character to the buffer */
     *AUX_MU_IO_REG = c;
 }
@@ -92,8 +106,24 @@ void uart_putc(unsigned int c) {
  */
 void uart_puts(const char *s) {
     while (*s) {
-        /* convert newline to carriage return + newline */
+        // /* convert newline to carriage return + newline */
         if (*s == '\n') uart_putc('\r');
         uart_putc(*s++);
+    }
+}
+
+
+// Convert binary value in hexadecimal
+void uart_puthex(unsigned int d) {
+    unsigned int n;
+    int c;
+
+    for (c=28; c>=0; c-=4) {
+        // get highest tetrad
+        n = (d>>c) & 0xF;
+
+        // 0-9 => '0'-'9', 10-15 => 'A'-'F'
+        n += n>9 ? 0x37 : 0x30;
+        uart_putc(n);
     }
 }
