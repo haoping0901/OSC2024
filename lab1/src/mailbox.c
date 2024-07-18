@@ -14,27 +14,25 @@
 #define MAILBOX_FULL    0x80000000
 #define MAILBOX_EMPTY   0x40000000
 
-// The buffer itself is 16-byte aligned as only the upper 28 bits of the address can be passed via the mailbox.
+// mailbox message buffer
 volatile unsigned int __attribute__((aligned(16))) mailbox[32];
 
 int mailbox_call(unsigned char channel) {
     // 1. Combine the message address (upper 28 bits) with 
     // channel number (lower 4 bits)
-    // The mailbox interface has 28 bits (MSB) available for the value(message address) and 4 bits (LSB) for the channel
-    // First take the 64bits address of mailbox(is probably just to ensure it can fits), then take the lower 32bits
-    // clear LSB 4 bits and fill with channel number.
     unsigned int mb_addr = ((unsigned int) ((unsigned long) &mailbox) & ~0xF) \
                             | (channel & 0xF);
 
     // 2. Check if Mailbox 0 status register’s full flag is set.
+    // wait until we can write to the mailbox
     do asm volatile("nop");
     while (*MAILBOX_STATUS & MAILBOX_FULL);
 
     // 3. If not, then you can write to Mailbox 1 Read/Write register.
-    // write our address containing message to mailbox address
+    // write the address of our message to the mailbox with channel identifier
     *MAILBOX_WRITE = mb_addr;
     
-    // Wait for response
+    // Wait for the response
     while(1) {
         // 4. Check if Mailbox 0 status register’s empty flag is set.
         do asm volatile("nop");
@@ -43,7 +41,6 @@ int mailbox_call(unsigned char channel) {
         // 5. If not, then you can read from Mailbox 0 Read/Write register.
         // 6. Check if the value is the same as you wrote in step 1.
         if (mb_addr == *MAILBOX_READ) 
-            // if the response is successed
             return mailbox[1] == REQUEST_SUCCEED;
     }
 
