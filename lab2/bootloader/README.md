@@ -16,13 +16,19 @@
 
 程式執行流程與 lab1 類似，但避免使用 lab1 使用到的 `x0` 暫存器，因為 `x0` 在後續的練習中會被用來傳遞其他資訊 (dtb loading address)。(參考[課程網站](https://nycu-caslab.github.io/OSC2024/labs/lab2.html#dtb-loading))
 
+* 由於 `x0` 可能會在後續的函式呼叫中被用來傳遞參數與回傳值，因此在透過下方指令確認程式有使用到哪些暫存器後，我事先將 `x0` 的值存放到未被使用的 `x10` 暫存器，後續載入完核心後再將 `x10` 的值存回 `x0` 並跳去執行載入的核心。
+
+    ```Bash
+    aarch64-linux-gnu-objdump -d bootloader.elf
+    ```
+
 .global: 讓接在後方的符號能被 linker 與其他一起連結的程式看到。([Ref. 1](https://ftp.gnu.org/old-gnu/Manuals/gas/html_chapter/as_7.html#SEC93), [Ref. 2](https://developer.arm.com/documentation/100068/0622/Migrating-from-armasm-to-the-armclang-Integrated-Assembler/Miscellaneous-directives?lang=en))
 
 ## C Code
 
 在 main() 中，會先檢查是否重新擺放過自己設計的 bootloader，還沒的話就去重新擺放 bootloader，並在結束後跳去執行重新擺放的位址上的 bootloader。這個時候用來確認擺放狀態的變數 (`had_relocated`) 已經更新了，因此會直接開始執行 shell。
 
-shell 中新增了載入 kernel 的功能，透過在命令列中輸入 load 可以讓板子開始透過 UART 接收實際要測試的核心。
+shell 中新增了載入 kernel 的功能，透過在命令列中輸入 load 可以讓板子開始透過 UART 接收實際要測試的核心，最後跳去載入核心的位址執行。
 
 ## makefile
 
