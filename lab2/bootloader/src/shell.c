@@ -77,6 +77,7 @@ void load_command(void)
     uart_puts("Kernel successfully loaded!\n");
 
     asm volatile(
+        "mov x0, x10"
         "mov x30, 0x80000;"
         "ret;"
     );

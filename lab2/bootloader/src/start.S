@@ -10,6 +10,7 @@ hang:
     b       hang
 core0:
 setup_stack:
+    mov     x10, x0
     ldr     x1, =_start
     mov     sp, x1
 load_bss:
