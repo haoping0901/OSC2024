@@ -22,10 +22,8 @@
 
 在 main() 中，會先檢查是否重新擺放過自己設計的 bootloader，還沒的話就去重新擺放 bootloader，並在結束後跳去執行重新擺放的位址上的 bootloader。這個時候用來確認擺放狀態的變數 (`had_relocated`) 已經更新了，因此會直接開始執行 shell。
 
-shell 中新增了載入 kernel 的功能，透過在命令列中輸入 load 可以，
-
-* `_dtb` 的作用?
+shell 中新增了載入 kernel 的功能，透過在命令列中輸入 load 可以讓板子開始透過 UART 接收實際要測試的核心。
 
 ## makefile
 
-$(wildcard pattern...): 會用一個以空白隔開的列表替換，列表為符合 pattern 的現存檔案的名稱。([Ref.](https://www.gnu.org/software/make/manual/html_node/Wildcard-Function.html))
+$(wildcard pattern...): 用一個以空白隔開的列表替換，列表中包含符合 pattern 的檔案名稱。([Ref.](https://www.gnu.org/software/make/manual/html_node/Wildcard-Function.html))
