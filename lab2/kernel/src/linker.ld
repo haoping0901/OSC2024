@@ -1,5 +1,8 @@
 ENTRY(_start)
 
+/* Set the available size for heap and stack. */
+_heap_stack_size = 256K;
+
 SECTIONS
 {
   . = 0x80000;
@@ -28,6 +31,18 @@ SECTIONS
     *(.bss)
     *(COMMON)
     _bss_end = .;
+  }
+
+  .heap :
+  {
+    . = ALIGN(8);
+    _heap = .;
+  }
+  . += _heap_stack_size;
+  
+  .stack :
+  {
+    _stack = .;
   }
 }
 

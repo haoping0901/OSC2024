@@ -2,10 +2,14 @@
 
 void memset(char *s, int ch, int size)
 {
-    if (!size) return;
+    if (!size) {
+        return;
+    }
     
     ch &= 0xFF;
-    while (size--) *s++ = ch;
+    while (size--) {
+        *s++ = ch;
+    }
     
     return;
 }
@@ -26,7 +30,7 @@ int strcmp(const char *s1, const char *s2)
     return 0;
 }
 
-int strncmp(const char *s1, const char *s2, unsigned long long count)
+int strncmp(const char *s1, const char *s2, size_t count)
 {
     unsigned char c1, c2;
 
@@ -55,4 +59,16 @@ int strlen(const char *str)
     }
     
     return cur - str;
+}
+
+void* memcpy(void* dest, const void* src, size_t len)
+{
+    const char* s = src;
+    char* d = dest;
+
+    while (len--) {
+        *d++ = *s++;
+    }
+
+    return dest;
 }

@@ -1,16 +1,16 @@
 # Note
 
-<!-- ## Linker -->
+## Linker
 
-<!-- 
+為了規劃空間給 allocator，因此新增了 .heap 與 .stack section 並紀錄 sections 的起始位址。除此之外，也在 linker script 中設置代表 heap 與 stack 的可使用空間大小的變數 `_heap_stack_size`。
 
-與 lab1 不同的是，連結器 (linker) 將 0x60000 設置為用來擺放我們定義的 bootloader 的位址。
+* 使用 `K` 與 `M` 後綴的變數分別會乘以 1024 與 1024*1024。([Ref.](https://sourceware.org/binutils/docs/ld/Constants.html))
 
-`PROVIDE()`: 只在被引用或其他連結物件沒有定義的時候才定義符號 (symbol)。 ([Ref.](https://sourceware.org/binutils/docs/ld/PROVIDE.html))
+```ld
+_heap_stack_size = 256K;
+```
 
-`(NOLOAD)`: 用來標記一個 section 在執行時期不要載入的指示詞。([Ref.](https://ftp.gnu.org/old-gnu/Manuals/ld-2.9.1/html_node/ld_21.html))
-
-* 由於 .bss section 存放的變數值預設都會初始化為 0，因此不需要將內容紀錄於執行檔，**除了可以減少執行檔大小以外，也可以減少載入執行檔的時間**。 -->
+GNU linker 支援 `+=` 指定運算，其餘支援的指定運算子可以參考[官方文件](https://sourceware.org/binutils/docs/ld/Simple-Assignments.html)。
 
 <!-- ## Boot Code -->
 
@@ -39,7 +39,7 @@
 * `ls`: 列出 cpio 壓縮檔中的檔案。
 * `cat [FILE]`: 輸出 cpio 壓縮檔中的 `FILE` 檔的內容。
 
-### CPIO
+### cpio
 
 [FreeBSD 的手冊](https://man.freebsd.org/cgi/man.cgi?query=cpio&sektion=5)
 
