@@ -3,11 +3,13 @@
 #include "../include/mailbox.h"
 #include "../include/allocator.h"
 #include "../include/utils.h"
-// #include "../include/dtb.h"
+#include "../include/dtb.h"
+
+extern char *dtb_addr;
 
 void main(void)
 {
-    // dtb_traverse(dtb_initramfs_callback);
+    dtb_traverse(dtb_initramfs_callback);
     
     uart_init();
     uart_puts("Hello World!\n");

@@ -7,8 +7,7 @@
 #define CPIO_MAGIC_NUMBER_MISMATCH  1
 #define CPIO_END_OF_ARCHIVE         2
 
-#define CPIO_DEFAULT_ADDR 0x20000000
-// void* CPIO_DEFAULT_ADDR;
+extern void* CPIO_DEFAULT_ADDR;
 
 struct cpio_newc_header {
     char    c_magic[6];     /* 070701 */

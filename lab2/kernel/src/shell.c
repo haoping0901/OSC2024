@@ -28,13 +28,13 @@ static inline SPECIAL_CHAR parse_char(const char recv_char)
     return REGULAR_INPUT;
 }
 
-static void input_buffer_overflow_protection(const char *buf)
+static inline void input_buffer_overflow_protection(const char *buf)
 {
     uart_puts("The command being entered is too long to process.\n");
     return;
 }
 
-static void help_command(void)
+static inline void help_command(void)
 {
     uart_puts("help         : print this help menu\n");
     uart_puts("hello        : print Hello World!\n");
@@ -47,20 +47,20 @@ static void help_command(void)
     return;
 }
 
-static void hello_command(void)
+static inline void hello_command(void)
 {
     uart_puts("Hello World!\n");
     return;
 }
 
-static void sysinfo_command(void)
+static inline void sysinfo_command(void)
 {
     get_sys_info();
 
     return;
 }
 
-static void reboot_command(void)
+static inline void reboot_command(void)
 {
     uart_puts("\nRebooting...\n\n");
     reset(100000);
@@ -68,27 +68,27 @@ static void reboot_command(void)
     return;
 }
 
-static void ls_command()
+static inline void ls_command()
 {
     cpio_ls();
 
     return;
 }
 
-static void cat_command(const char* cat_filename)
+static inline void cat_command(const char* cat_filename)
 {
     cpio_cat(cat_filename);
 
     return;
 }
 
-static void print_unknown(void)
+static inline void print_unknown(void)
 {
     uart_puts("Unknown input!\n");
     return;
 }
 
-static void parse_commands(const char *buf)
+static inline void parse_commands(const char *buf)
 {
     if (strcmp(buf, "help") == 0) {
         help_command();
@@ -113,35 +113,35 @@ static void put_char(const SPECIAL_CHAR schar, const char recv_char,
                      char buf[], int * const buf_idx)
 {
     switch (schar) {
-        case BACK_SPACE: 
-            if (*buf_idx > 0) --*buf_idx;
-            uart_puts("\b \b");
-            break;
-        case LINE_FEED:
-            uart_puts("\n");
-            
-            if (*buf_idx == BUFFER_SIZE)
-                input_buffer_overflow_protection(buf);
-            else {
-                buf[*buf_idx] = '\0';
-                parse_commands(buf);
-            }
+    case BACK_SPACE: 
+        if (*buf_idx > 0) --*buf_idx;
+        uart_puts("\b \b");
+        break;
+    case LINE_FEED:
+        uart_puts("\n");
+        
+        if (*buf_idx == BUFFER_SIZE)
+            input_buffer_overflow_protection(buf);
+        else {
+            buf[*buf_idx] = '\0';
+            parse_commands(buf);
+        }
 
-            *buf_idx = 0;
-            memset(buf, 0, BUFFER_SIZE);
-            uart_puts("# ");
-            break;
-        case UNKNOWN:
-            return;
-        case REGULAR_INPUT:
-            uart_putc(recv_char);
+        *buf_idx = 0;
+        memset(buf, 0, BUFFER_SIZE);
+        uart_puts("# ");
+        break;
+    case UNKNOWN:
+        return;
+    case REGULAR_INPUT:
+        uart_putc(recv_char);
 
-            if (*buf_idx < BUFFER_SIZE) 
-                buf[(*buf_idx)++] = recv_char;
-            
-            break;
-        default:
-            break;
+        if (*buf_idx < BUFFER_SIZE) 
+            buf[(*buf_idx)++] = recv_char;
+        
+        break;
+    default:
+        break;
     } 
 
     return;

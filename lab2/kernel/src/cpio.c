@@ -2,6 +2,10 @@
 #include "../include/utils.h"
 #include "../include/uart.h"
 
+
+// #define CPIO_DEFAULT_ADDR 0x20000000
+void* CPIO_DEFAULT_ADDR;
+
 /* parse hexadecimal fields to decimal */
 static inline unsigned long parse_hex(const char* hex, unsigned int width)
 {
