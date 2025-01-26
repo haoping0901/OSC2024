@@ -1,3 +1,7 @@
+#ifndef __GNUC__
+#define __asm__ asm
+#endif
+
 #include "../include/shell.h"
 #include "../include/uart.h"
 #include "../include/utils.h"
@@ -76,11 +80,12 @@ void load_command(void)
 
     uart_puts("Kernel successfully loaded!\n");
 
-    asm volatile(
+    __asm__ volatile(
         "mov x0, x10;"
         "mov x30, 0x80000;"
         "ret;"
     );
+    // ((void (*)()) kernel_addr)();/
 }
 
 void print_unknown(void)
