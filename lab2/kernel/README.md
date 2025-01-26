@@ -6,15 +6,15 @@
 
 * 使用 `K` 與 `M` 後綴的變數分別會乘以 1024 與 1024*1024。([Ref.](https://sourceware.org/binutils/docs/ld/Constants.html))
 
-```ld
-_heap_stack_size = 256K;
-```
+  ```ld
+  _heap_stack_size = 256K;
+  ```
 
-GNU linker 支援 `+=` 指定運算，其餘支援的指定運算子可以參考[官方文件](https://sourceware.org/binutils/docs/ld/Simple-Assignments.html)。
+* GNU linker 支援 `+=` 指定運算，其餘支援的指定運算子可以參考[官方文件](https://sourceware.org/binutils/docs/ld/Simple-Assignments.html)。
 
 ## Boot Code
 
-.extern: 僅僅是為了與其他組譯器相容而出現的指示詞，實際上會被忽略。GNU assembler 會將所有未定義的符號視為外部符號。([Ref.](https://ftp.gnu.org/old-gnu/Manuals/gas/html_chapter/as_7.html#SEC89))
+`.extern`: 僅僅是為了與其他組譯器相容而出現的指示詞，實際上會被忽略。GNU assembler 會將所有未定義的符號視為外部符號。([Ref.](https://ftp.gnu.org/old-gnu/Manuals/gas/html_chapter/as_7.html#SEC89))
 
 * `.extern dtb_addr`: 由於要將 UART bootloader 傳遞給我們的 devicetree 載入位址的資訊存放到外部符號 (`dtb_addr`)，因此原先打算以此指示詞宣告外部符號。
 * 除了 `extern` 以外，也可以使用 `IMPORT`。 ([Ref.](https://developer.arm.com/documentation/dui0041/c/Assembler/Directives/IMPORT-or-EXTERN-directive))
