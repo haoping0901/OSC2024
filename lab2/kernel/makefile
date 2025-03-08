@@ -10,6 +10,8 @@ CFLAGS = -Wall -O2 -ffreestanding -nostdinc -nostdlib -nostartfiles
 
 all: clean $(KERNEL).img
 
+.PHONY: all clean run
+
 $(SRC_DIR)/start.o: $(SRC_DIR)/start.S
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -22,3 +24,6 @@ $(KERNEL).img: $(SRC_DIR)/start.o $(OBJS)
 
 clean:
 	rm $(KERNEL).* $(SRC_DIR)/*.o >/dev/null 2>/dev/null || true
+
+run:
+	qemu-system-aarch64 -machine raspi3b -kernel $(KERNEL).img -display none -serial null -serial stdio -initrd initramfs.cpio -dtb bcm2710-rpi-3-b-plus.dtb

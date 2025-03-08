@@ -150,13 +150,13 @@ Devicetree 是一種用於描述系統硬體的樹狀結構，主要用於嵌入
 
 以下為用 structure block 表示[本課程使用的開發板的 dts 檔](https://github.com/raspberrypi/linux/blob/rpi-5.10.y/arch/arm/boot/dts/bcm2710-rpi-3-b-plus.dts)的簡易範例:
 
-```json
+```C
 / {
     compatible = "raspberrypi,3-model-b-plus", "brcm,bcm2837";
     model = "Raspberry Pi 3 Model B+";
 
     chosen {
-        bootargs = "coherent_pool=1M 8250.nr_uarts=1 snd_bcm2835.       enable_compat_alsa=0 snd_bcm2835.enable_hdmi=1";
+      bootargs = "coherent_pool=1M 8250.nr_uarts=1 snd_bcm2835.enable_compat_alsa=0 snd_bcm2835.enable_hdmi=1";
     };
 
     aliases {

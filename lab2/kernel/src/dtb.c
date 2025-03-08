@@ -5,11 +5,13 @@
 
 char *dtb_addr;
 
-// #define bswap_32(x) \
-//     ((x & 0xFF000000) >> 24) | \
-//     ((x & 0x00FF0000) >>  8) | \
-//     ((x & 0x0000FF00) <<  8) | \
-//     ((x & 0x000000FF) << 24)
+/*
+#define bswap_32(x) \
+    ((x & 0xFF000000) >> 24) | \
+    ((x & 0x00FF0000) >>  8) | \
+    ((x & 0x0000FF00) <<  8) | \
+    ((x & 0x000000FF) << 24)
+*/
 
 static inline uint32_t bswap_32(uint32_t x)
 {
@@ -52,7 +54,7 @@ void dtb_traverse(dtb_callback callback)
             cur += strlen(cur);
 
             /* align pointer to 32-bit boundary */
-            cur = (char*) align_32(cur);
+            cur = (char*) align_32((uint64_t) cur);
             break;
         case FDT_END_NODE:
             callback(token_type, 0, 0);
@@ -64,7 +66,7 @@ void dtb_traverse(dtb_callback callback)
             callback(token_type, prop_name, cur);
 
             cur += prop_len;
-            cur = (char*) align_32(cur);
+            cur = (char*) align_32((uint64_t) cur);
 
             break;
         case FDT_NOP:

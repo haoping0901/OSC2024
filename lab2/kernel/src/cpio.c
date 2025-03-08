@@ -12,7 +12,7 @@ static inline unsigned long parse_hex(const char* hex, unsigned int width)
     unsigned long idx, dec = 0;
 
     for (idx=0; idx<width; ++idx) {
-        dec *= 16;
+        dec <<= 4;
 
         if (hex[idx] >= '0' && hex[idx] <= '9') {
             dec += hex[idx] - '0';
@@ -21,7 +21,7 @@ static inline unsigned long parse_hex(const char* hex, unsigned int width)
         } else if (hex[idx] >= 'A' && hex[idx] <= 'F') {
             dec += hex[idx] - 'A' + 10;
         } else {
-            return dec;
+            break;
         }
     }
 
@@ -35,7 +35,6 @@ static int parse_header(struct cpio_newc_header** header,
     /* check magic */
     if (strncmp((*header)->c_magic, CPIO_HEADER_MAGIC, 
                 sizeof((*header)->c_magic)) != 0) {
-        uart_puts("Mismatched cpio format!\n");
         return CPIO_MAGIC_NUMBER_MISMATCH;
     }
 
@@ -55,10 +54,10 @@ static int parse_header(struct cpio_newc_header** header,
      * Align the pointer due to the total size of the fixed header plus
      * pathname is a multiple of four.
      */
-    offset = (offset + 3) & ~3;
+    offset = (offset + 3) & ~0x3;
 
     /* get the pointer to data */
-    *data = (char*) header + offset;
+    *data = (char*) (*header) + offset;
 
     /* move the pointer of the header to next file */
     /* get filesize */
@@ -68,7 +67,7 @@ static int parse_header(struct cpio_newc_header** header,
      * Likewise, align the pointer due to the file data is padded to a multiple
      * of four bytes.
      */
-    offset = (*filesize + 3) & ~0x11;   /* align */
+    offset = (*filesize + 3) & ~0x3;   /* align */
     (*header) = (struct cpio_newc_header*) (*data + offset);
 
     return CPIO_PARSE_SUCCEED;
@@ -85,7 +84,10 @@ void cpio_ls(void)
         int parsing_status = parse_header(&header, &parsed_file, 
                                           &parsed_filesize, &data);
         
-        if (parsing_status != CPIO_PARSE_SUCCEED) {
+        if (parsing_status == CPIO_MAGIC_NUMBER_MISMATCH) {
+            uart_puts("Mismatched cpio format!\n");
+            break;
+        } else if (parsing_status == CPIO_END_OF_ARCHIVE) {
             break;
         }
         
@@ -100,12 +102,14 @@ void cpio_cat(const char* cat_file)
         (struct cpio_newc_header*) CPIO_DEFAULT_ADDR;
     const char *parsed_file, *data;
     unsigned long parsed_filesize = 0;
+    int found = 0;
 
     while (header) {
         int parsing_status = parse_header(&header, &parsed_file, 
                                           &parsed_filesize, &data);
         
         if (parsing_status != CPIO_PARSE_SUCCEED) {
+            uart_puts("Error parsing CPIO archive\n");
             break;
         }
         
@@ -117,8 +121,15 @@ void cpio_cat(const char* cat_file)
                 uart_putc(*data++);
             }
             uart_puts("\n");
-            
+
+            found = 1;
             break;
         }
+    }
+
+    if (!found) {
+        uart_puts("File not found: ");
+        uart_puts(cat_file);
+        uart_puts("\n");
     }
 }
