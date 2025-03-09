@@ -85,7 +85,7 @@ void load_command(void)
         "mov x30, 0x80000;"
         "ret;"
     );
-    // ((void (*)()) kernel_addr)();/
+    /* ((void (*)()) kernel_addr)(); */
 }
 
 void print_unknown(void)

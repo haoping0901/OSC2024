@@ -51,9 +51,11 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+*.img
+*.pdf
 312442025/*
 M091004/*
 tsaiwooo/*
-DDI0487E_a_armv8_arm.pdf
 github_key
 osdi/*
+.vscode/settings.json

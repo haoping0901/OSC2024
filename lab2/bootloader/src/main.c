@@ -40,10 +40,10 @@ void code_relocate(void)
         relocate_addr[i] = code_start[i];
     
     uart_puts("Relocating completed!\n");
-    // __asm__ volatile (
-    //     "mov x0, x10;"
-    //     "mov x30, 0x80000;"
-    //     "ret;"
-    // );
-    ((void (*)()) relocate_addr)();
+    __asm__ volatile (
+        "mov x0, x10;"
+        "ldr x30, =_relocate_addr;"
+        "ret;"
+    );
+    /* ((void (*)()) relocate_addr)(); */
 }
